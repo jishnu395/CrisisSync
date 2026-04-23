@@ -1,5 +1,12 @@
 const API_URL = import.meta.env.VITE_API_URL || "https://crisissync-backend-5i57.onrender.com";
 
+function parseDate(val) {
+  if (!val) return null;
+  if (val?.toDate) return val.toDate();
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export async function createAlert({ type, location, floor, triggeredBy }) {
   const res = await fetch(`${API_URL}/api/sos`, {
     method: "POST",
@@ -15,12 +22,12 @@ export async function createAlert({ type, location, floor, triggeredBy }) {
     floor: floor || "N/A",
     status: data.status,
     triggeredBy: data.triggeredBy,
-    triggeredAt: new Date(data.timestamp),
-    acknowledgedAt: null,
-    acknowledgedBy: null,
-    resolvedAt: null,
-    responseTimeSeconds: null,
-    resolutionNote: null,
+    triggeredAt: parseDate(data.timestamp),
+    acknowledgedAt: parseDate(data.acknowledgedAt),
+    acknowledgedBy: data.acknowledgedBy || null,
+    resolvedAt: parseDate(data.resolvedAt),
+    responseTimeSeconds: data.responseTime || null,
+    resolutionNote: data.resolutionNote || null,
     assignedStaff: null,
     assignedStaffName: null,
   };
@@ -29,7 +36,7 @@ export async function createAlert({ type, location, floor, triggeredBy }) {
 export async function getAlerts() {
   const res = await fetch(`${API_URL}/api/incidents`);
   const data = await res.json();
-  return data.map(a => ({
+  return data.map((a) => ({
     id: a.id,
     docId: a.id,
     type: a.type,
@@ -37,10 +44,10 @@ export async function getAlerts() {
     floor: a.floor || "N/A",
     status: a.status,
     triggeredBy: a.triggeredBy,
-    triggeredAt: a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp),
-    acknowledgedAt: null,
+    triggeredAt: parseDate(a.timestamp),
+    acknowledgedAt: parseDate(a.acknowledgedAt),
     acknowledgedBy: a.acknowledgedBy || null,
-    resolvedAt: null,
+    resolvedAt: parseDate(a.resolvedAt),
     responseTimeSeconds: a.responseTime || null,
     resolutionNote: a.resolutionNote || null,
     assignedStaff: null,
@@ -66,7 +73,6 @@ export async function resolveAlert(docId, resolvedBy, resolutionNote) {
 }
 
 export function subscribeToAlerts({ callback }) {
-  // Fetch immediately, then poll every 3s
   getAlerts().then(callback).catch(console.error);
   const interval = setInterval(async () => {
     const alerts = await getAlerts();
@@ -78,11 +84,14 @@ export function subscribeToAlerts({ callback }) {
 export function subscribeToStats(callback) {
   const interval = setInterval(async () => {
     const alerts = await getAlerts();
-    const resolved = alerts.filter(a => a.status === "resolved");
+    const resolved = alerts.filter((a) => a.status === "resolved");
     callback({
       resolvedAlerts: resolved.length,
       avgResponseTime: resolved.length
-        ? Math.round(resolved.reduce((s, a) => s + (a.responseTimeSeconds || 0), 0) / resolved.length)
+        ? Math.round(
+            resolved.reduce((s, a) => s + (a.responseTimeSeconds || 0), 0) /
+              resolved.length
+          )
         : 0,
     });
   }, 3000);
