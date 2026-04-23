@@ -16,6 +16,7 @@ export function useAlerts({ floor, status } = {}) {
     return () => { unsub1(); unsub2(); };
   }, [floor, status]);
 
-  const activeAlerts = alerts.filter(a => a.status === "active" || a.status === " acknowledged");
+  // ✅ Fixed: removed space before "acknowledged"
+  const activeAlerts = alerts.filter(a => a.status === "active" || a.status === "acknowledged");
   return { alerts, activeAlerts, stats };
 }
