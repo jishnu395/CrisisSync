@@ -30,3 +30,32 @@ export async function getAlerts() {
   const res = await fetch(`${API_URL}/alerts`);
   return await res.json();
 }
+
+export function subscribeToAlerts({ callback }) {
+  // Poll the backend every 3 seconds
+  const interval = setInterval(async () => {
+    const alerts = await getAlerts();
+    callback(alerts);
+  }, 3000);
+
+  return () => clearInterval(interval); // cleanup
+}
+
+export function subscribeToStats(callback) {
+  const interval = setInterval(async () => {
+    const alerts = await getAlerts();
+    const resolved = alerts.filter(a => a.status === "resolved");
+    callback({
+      resolvedAlerts: resolved.length,
+      avgResponseTime: resolved.length
+        ? Math.round(resolved.reduce((s, a) => s + (a.responseTimeSeconds || 0), 0) / resolved.length)
+        : 0,
+    });
+  }, 3000);
+
+  return () => clearInterval(interval);
+}
+
+export async function subscribeToLogs() {
+  return () => {};
+}
