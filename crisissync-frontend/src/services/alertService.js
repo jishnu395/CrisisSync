@@ -1,103 +1,110 @@
-const API_URL = import.meta.env.VITE_API_URL || "https://crisissync-backend-5i57.onrender.com";
+import { db } from "./firebase";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+  Timestamp,
+  getDoc,
+} from "firebase/firestore";
 
-function parseDate(val) {
-  if (!val) return null;
-  if (val?.toDate) return val.toDate();
-  const d = new Date(val);
+const COLLECTION = "alerts";
+
+/** Safely convert any Firestore value → JS Date (or null) */
+function parseDate(value) {
+  if (!value) return null;
+  if (value instanceof Timestamp) return value.toDate();
+  if (value instanceof Date) return value;
+  const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;
 }
 
-export async function createAlert({ type, location, floor, triggeredBy }) {
-  const res = await fetch(`${API_URL}/api/sos`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type, location, triggeredBy }),
-  });
-  const data = await res.json();
+/** Map a Firestore doc snapshot → clean alert object */
+function docToAlert(docSnap) {
+  const d = docSnap.data();
   return {
-    id: data.id,
-    docId: data.id,
-    type: data.type,
-    location: data.location,
-    floor: floor || "N/A",
-    status: data.status,
-    triggeredBy: data.triggeredBy,
-    triggeredAt: parseDate(data.timestamp),
-    acknowledgedAt: parseDate(data.acknowledgedAt),
-    acknowledgedBy: data.acknowledgedBy || null,
-    resolvedAt: parseDate(data.resolvedAt),
-    responseTimeSeconds: data.responseTime || null,
-    resolutionNote: data.resolutionNote || null,
-    assignedStaff: null,
-    assignedStaffName: null,
+    docId:               docSnap.id,
+    id:                  d.id              || docSnap.id,
+    type:                d.type            || "other",
+    location:            d.location        || "Unknown",
+    floor:               d.floor           || "N/A",
+    status:              d.status          || "active",
+    triggeredBy:         d.triggeredBy     || null,
+    acknowledgedBy:      d.acknowledgedBy  || null,
+    triggeredAt:         parseDate(d.triggeredAt) || parseDate(d.timestamp),
+    acknowledgedAt:      parseDate(d.acknowledgedAt),
+    resolvedAt:          parseDate(d.resolvedAt),
+    responseTimeSeconds: d.responseTimeSeconds || null,
+    resolutionNote:      d.resolutionNote       || null,
   };
 }
 
-export async function getAlerts() {
-  const res = await fetch(`${API_URL}/api/incidents`);
-  const data = await res.json();
-  return data.map((a) => ({
-    id: a.id,
-    docId: a.id,
-    type: a.type,
-    location: a.location,
-    floor: a.floor || "N/A",
-    status: a.status,
-    triggeredBy: a.triggeredBy,
-    triggeredAt: parseDate(a.timestamp),
-    acknowledgedAt: parseDate(a.acknowledgedAt),
-    acknowledgedBy: a.acknowledgedBy || null,
-    resolvedAt: parseDate(a.resolvedAt),
-    responseTimeSeconds: a.responseTime || null,
-    resolutionNote: a.resolutionNote || null,
-    assignedStaff: null,
-    assignedStaffName: null,
-  }));
-}
-
-export async function acknowledgeAlert(docId, staffId, staffName) {
-  await fetch(`${API_URL}/api/incidents/${docId}/acknowledge`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ acknowledgedBy: staffId }),
+/** Subscribe to all alerts — accepts { callback } object to match useAlerts.js */
+export function subscribeToAlerts({ callback } = {}) {
+  const q = query(collection(db, COLLECTION), orderBy("triggeredAt", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const alerts = snapshot.docs.map(docToAlert);
+    if (callback) callback(alerts);
   });
 }
 
-export async function resolveAlert(docId, resolvedBy, resolutionNote) {
-  const res = await fetch(`${API_URL}/api/incidents/${docId}/resolve`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ resolvedBy, resolutionNote }),
-  });
-  return await res.json();
-}
-
-export function subscribeToAlerts({ callback }) {
-  getAlerts().then(callback).catch(console.error);
-  const interval = setInterval(async () => {
-    const alerts = await getAlerts();
-    callback(alerts);
-  }, 3000);
-  return () => clearInterval(interval);
-}
-
+/** Subscribe to computed stats derived from the alerts collection */
 export function subscribeToStats(callback) {
-  const interval = setInterval(async () => {
-    const alerts = await getAlerts();
-    const resolved = alerts.filter((a) => a.status === "resolved");
-    callback({
-      resolvedAlerts: resolved.length,
-      avgResponseTime: resolved.length
-        ? Math.round(
-            resolved.reduce((s, a) => s + (a.responseTimeSeconds || 0), 0) /
-              resolved.length
-          )
-        : 0,
+  const q = query(collection(db, COLLECTION), orderBy("triggeredAt", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const alerts = snapshot.docs.map(docToAlert);
+    const resolved = alerts.filter(a => a.status === "resolved" && a.responseTimeSeconds);
+    const avgResponseTime = resolved.length
+      ? Math.round(resolved.reduce((sum, a) => sum + a.responseTimeSeconds, 0) / resolved.length)
+      : null;
+    if (callback) callback({
+      total:        alerts.length,
+      active:       alerts.filter(a => a.status === "active").length,
+      acknowledged: alerts.filter(a => a.status === "acknowledged").length,
+      resolved:     resolved.length,
+      avgResponseTime,
     });
-  }, 3000);
-  return () => clearInterval(interval);
+  });
 }
 
-export async function subscribeToLogs() {
-  return () => {};
+/** Trigger a new SOS alert */
+export async function createAlert(payload) {
+  const ref = await addDoc(collection(db, COLLECTION), {
+    ...payload,
+    status:      "active",
+    triggeredAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+/** Acknowledge an alert */
+export async function acknowledgeAlert(docId, userId, userName) {
+  await updateDoc(doc(db, COLLECTION, docId), {
+    status:         "acknowledged",
+    acknowledgedBy: userName || userId,
+    acknowledgedAt: serverTimestamp(),
+  });
+}
+
+/** Resolve an alert */
+export async function resolveAlert(docId, userId, note) {
+  const alertRef = doc(db, COLLECTION, docId);
+  const snap     = await getDoc(alertRef);
+  const data     = snap.data();
+  const sentAt   = parseDate(data?.triggeredAt || data?.timestamp);
+  const responseTimeSeconds = sentAt
+    ? Math.round((Date.now() - sentAt.getTime()) / 1000)
+    : null;
+
+  await updateDoc(alertRef, {
+    status:              "resolved",
+    resolvedBy:          userId,
+    resolvedAt:          serverTimestamp(),
+    resolutionNote:      note || null,
+    responseTimeSeconds,
+  });
 }
