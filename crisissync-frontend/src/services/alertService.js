@@ -1,4 +1,4 @@
-const API_URL = "https://crisissync-backend-5i57.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "https://crisissync-backend-5i57.onrender.com";
 
 export async function createAlert({ type, location, floor, triggeredBy }) {
   const res = await fetch(`${API_URL}/api/sos`, {
@@ -7,7 +7,6 @@ export async function createAlert({ type, location, floor, triggeredBy }) {
     body: JSON.stringify({ type, location, triggeredBy }),
   });
   const data = await res.json();
-  // normalize to match your frontend's expected shape
   return {
     id: data.id,
     docId: data.id,
@@ -21,6 +20,7 @@ export async function createAlert({ type, location, floor, triggeredBy }) {
     acknowledgedBy: null,
     resolvedAt: null,
     responseTimeSeconds: null,
+    resolutionNote: null,
     assignedStaff: null,
     assignedStaffName: null,
   };
@@ -42,6 +42,7 @@ export async function getAlerts() {
     acknowledgedBy: a.acknowledgedBy || null,
     resolvedAt: null,
     responseTimeSeconds: a.responseTime || null,
+    resolutionNote: a.resolutionNote || null,
     assignedStaff: null,
     assignedStaffName: null,
   }));
@@ -55,16 +56,18 @@ export async function acknowledgeAlert(docId, staffId, staffName) {
   });
 }
 
-export async function resolveAlert(docId, resolvedBy) {
+export async function resolveAlert(docId, resolvedBy, resolutionNote) {
   const res = await fetch(`${API_URL}/api/incidents/${docId}/resolve`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ resolvedBy }),
+    body: JSON.stringify({ resolvedBy, resolutionNote }),
   });
   return await res.json();
 }
 
 export function subscribeToAlerts({ callback }) {
+  // Fetch immediately, then poll every 3s
+  getAlerts().then(callback).catch(console.error);
   const interval = setInterval(async () => {
     const alerts = await getAlerts();
     callback(alerts);
