@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { acknowledgeAlert, resolveAlert } from "../../services/alertService";
 import { useAlerts } from "../../hooks/useAlerts";
+import HotelFloorMap from "../HotelFloorMap"; // ← NEW
 
 const TYPE_CFG = {
   fire:     { icon: "🔥", color: "#ff2d55", bg: "rgba(255,45,85,0.08)",    border: "rgba(255,45,85,0.15)"    },
@@ -68,6 +69,7 @@ export default function AdminDashboard({ userId, onToast }) {
   const { alerts, stats } = useAlerts();
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(null);
+  const [showMap, setShowMap] = useState(true); // ← NEW
   const prevCount = useRef(0);
 
   useEffect(() => {
@@ -108,6 +110,23 @@ export default function AdminDashboard({ userId, onToast }) {
     setLoading(null);
   };
 
+  // ── NEW: when admin clicks a room pin on the map ─────────────────────────
+  // Finds the alert for that room and acknowledges / resolves it in one click.
+  const handleRoomClick = async (roomId) => {
+    const alert = alerts.find((a) => String(a.location) === String(roomId));
+    if (!alert) return;
+    if (alert.status === "active")       await handleAck(alert);
+    if (alert.status === "acknowledged") await handleResolve(alert);
+  };
+
+  // ── NEW: build the alerts array the map expects ──────────────────────────
+  // HotelFloorMap needs { roomNumber, status }. Your alerts use `location`
+  // as the room identifier, so we remap here.
+  const mapAlerts = alerts.map((a) => ({
+    roomNumber: String(a.location),
+    status:     a.status,
+  }));
+
   /* ── filter bar ── */
   const filterBtnStyle = (val) => ({
     padding: "6px 16px",
@@ -138,6 +157,47 @@ export default function AdminDashboard({ userId, onToast }) {
           </div>
         ))}
       </div>
+
+      {/* ── NEW: Live Floor Map ─────────────────────────────────────────── */}
+      <div style={{ marginBottom: 24 }}>
+        {/* Map header with toggle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#e8e8f0", fontFamily: "'JetBrains Mono', monospace" }}>
+            🗺️ LIVE FLOOR MAP
+          </span>
+          <button
+            onClick={() => setShowMap((v) => !v)}
+            style={{
+              padding: "4px 14px",
+              borderRadius: 8,
+              border: "1px solid #2a2a3a",
+              background: showMap ? "rgba(129,140,248,0.12)" : "transparent",
+              color: showMap ? "#818cf8" : "#555",
+              cursor: "pointer",
+              fontSize: 11,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            {showMap ? "HIDE" : "SHOW"}
+          </button>
+        </div>
+
+        {showMap && (
+          <div style={{
+            background: "#12121a",
+            border: "1px solid #1a1a26",
+            borderRadius: 12,
+            padding: 20,
+          }}>
+            <HotelFloorMap
+              alerts={mapAlerts}
+              onRoomClick={handleRoomClick}
+              floorLabel="Floor 1"
+            />
+          </div>
+        )}
+      </div>
+      {/* ── END Live Floor Map ──────────────────────────────────────────── */}
 
       {/* ── Filter bar ── */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
