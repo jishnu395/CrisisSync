@@ -6,6 +6,7 @@ import { useToast } from "./hooks/useToast";
 import ToastContainer from "./components/common/Toast";
 import Landing from "./components/common/Landing";
 import GuestScreen from "./components/sos/GuestScreen";
+import AdminDashboard from "./components/dashboard/AdminDashboard"; // ← ADDED
 import { LiveTimer } from "./components/common/LiveTimer";
 
 // Resolution Modal
@@ -137,83 +138,9 @@ export default function App() {
       <main style={{ position: "relative", zIndex: 1 }}>
         {role === "guest" && <GuestScreen onTrigger={handleSOS} userId={userId} />}
 
-        {/* ADMIN */}
+        {/* ── ADMIN: now uses AdminDashboard which has the floor map ── */}
         {role === "admin" && (
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 16px" }}>
-            <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              {[
-                { label: "Active Alerts", value: activeAlerts.length, color: "#ff2d55" },
-                { label: "Avg Response", value: stats?.avgResponseTime ? stats.avgResponseTime + "s" : "--", color: "#ff9500" },
-                { label: "Resolved", value: resolvedAlerts.length, color: "#30d158" },
-                { label: "Staff Online", value: 12, color: "#5ac8fa" },
-              ].map((s, i) => (
-                <div key={i} style={{ background: "#1a1a26", border: "1px solid #2a2a3a", borderRadius: 12, padding: "16px 20px", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: s.color }} />
-                  <div style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "#555", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: s.color }}>{s.value}</div>
-                </div>
-              ))}
-            </div>
-            <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, color: "#666", marginBottom: 12 }}>
-              <span style={{ color: "#ff2d55", marginRight: 8 }}>●</span>Live Alerts
-            </h3>
-            {activeAlerts.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 60, color: "#444" }}>
-                <div style={{ fontSize: 32, marginBottom: 8, color: "#30d158" }}>✓</div>
-                <p style={{ fontSize: 13 }}>All clear. Trigger an SOS from the Guest tab.</p>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {activeAlerts.map((a) => {
-                  const c = colors[a.type] || "#888";
-                  return (
-                    <div key={a.docId} style={{ background: "#1a1a26", border: "1px solid #2a2a3a", borderLeft: "3px solid " + c, borderRadius: 10, padding: 16 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 18 }}>{icons[a.type] || "⚠️"}</span>
-                          <span style={{ fontWeight: 600, fontSize: 13, textTransform: "capitalize" }}>{a.type}</span>
-                          <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "#555" }}>{a.id}</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <LiveTimer triggeredAt={a.triggeredAt} />
-                          <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono', monospace", padding: "2px 8px", borderRadius: 10, background: c + "15", color: c }}>{a.status.toUpperCase()}</span>
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 12, color: "#666" }}>
-                        📍 {a.location} — Floor {a.floor}
-                        {a.acknowledgedBy && <span style={{ color: "#ff9500", marginLeft: 12 }}>👤 {a.acknowledgedBy}</span>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {resolvedAlerts.length > 0 && (
-              <>
-                <h3 style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, color: "#666", marginBottom: 12, marginTop: 32 }}>
-                  <span style={{ color: "#30d158", marginRight: 8 }}>✓</span>Resolved History
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {resolvedAlerts.map((a) => (
-                    <div key={a.docId} style={{ background: "#12121c", border: "1px solid #1e1e2e", borderLeft: "3px solid #30d158", borderRadius: 10, padding: 16, opacity: 0.8 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span>{icons[a.type] || "⚠️"}</span>
-                          <span style={{ fontWeight: 600, fontSize: 13, textTransform: "capitalize" }}>{a.type}</span>
-                          <span style={{ fontSize: 11, color: "#555" }}>📍 {a.location}</span>
-                        </div>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          {a.responseTimeSeconds && <span style={{ fontSize: 10, color: "#30d158", fontFamily: "'JetBrains Mono', monospace" }}>⚡ {Math.round(a.responseTimeSeconds)}s response</span>}
-                          <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 10, background: "#30d15815", color: "#30d158", fontFamily: "'JetBrains Mono', monospace" }}>RESOLVED</span>
-                        </div>
-                      </div>
-                      {a.resolutionNote && <p style={{ fontSize: 12, color: "#555", marginTop: 8, fontStyle: "italic" }}>"{a.resolutionNote}"</p>}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          <AdminDashboard userId={userId} onToast={show} />
         )}
 
         {/* STAFF */}
@@ -244,7 +171,6 @@ export default function App() {
                           <p style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "#555" }}>{a.id}</p>
                         </div>
                       </div>
-                      {/* ⏱ LIVE TIMER */}
                       <div style={{ marginBottom: 10 }}><LiveTimer triggeredAt={a.triggeredAt} /></div>
                       <p style={{ fontSize: 12, color: "#888", marginBottom: 16 }}>📍 {a.location} — Floor {a.floor}</p>
                       <button onClick={() => setResolvingAlert(a)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "none", background: "#30d158", color: "white", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>✓ Mark Resolved</button>
@@ -284,7 +210,6 @@ export default function App() {
                           <p style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "#555" }}>{a.id}</p>
                         </div>
                       </div>
-                      {/* ⏱ LIVE TIMER */}
                       <div style={{ marginBottom: 10 }}><LiveTimer triggeredAt={a.triggeredAt} /></div>
                       <div style={{ fontSize: 12, color: "#888", display: "flex", flexDirection: "column", gap: 4, marginBottom: 16 }}>
                         <span>📍 {a.location} — Floor {a.floor}</span>
