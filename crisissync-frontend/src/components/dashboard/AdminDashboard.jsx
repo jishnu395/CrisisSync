@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { acknowledgeAlert, resolveAlert } from "../../services/alertService";
 import { useAlerts } from "../../hooks/useAlerts";
-import HotelFloorMap from "../HotelFloorMap"; // ← NEW
+import HotelFloorMap from "../HotelFloorMap";
 
 const TYPE_CFG = {
   fire:     { icon: "🔥", color: "#ff2d55", bg: "rgba(255,45,85,0.08)",    border: "rgba(255,45,85,0.15)"    },
