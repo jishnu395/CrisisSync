@@ -34,7 +34,7 @@
 
 ## 📌 Overview
 
-CrisisSync is a full-stack emergency coordination platform that enables guests, staff, and responders to communicate and act on crises in real time. Whether it's a fire, medical emergency, or security threat — CrisisSync ensures the right people are notified instantly, with full lifecycle tracking from the moment an SOS is triggered to resolution.
+CrisisSync is a full-stack emergency coordination platform that enables guests, staff, and responders to communicate and act on crises in real time. Whether it's a fire, medical emergency, or security threat — CrisisSync ensures instant notification and full lifecycle tracking from SOS trigger to resolution.
 
 ---
 
@@ -44,24 +44,24 @@ Design a system that can:
 
 * Detect and manage emergency alerts in real-time
 * Provide a centralized dashboard for monitoring
-* Enable quick response actions to minimize delays
-* Visually represent incidents for better situational awareness
+* Enable quick response actions
+* Visually represent incidents
 
 ---
 
 ## ✨ Features
 
-| Feature                | Description                             |
-| ---------------------- | --------------------------------------- |
-| 🔴 One-tap SOS Trigger | Guests raise emergency alerts instantly |
-| 📡 Live Alert Feed     | Real-time updates via Firestore         |
-| 🗺️ Live Floor Map     | Visual room-level alert tracking        |
-| 👥 Role-based Views    | Admin, Staff, Responder, Guest          |
-| ✅ Ack & Resolve        | One-click lifecycle management          |
-| 📊 Stats Dashboard     | Active, resolved, response time         |
-| ⏱️ Live Timer          | Tracks urgency in real-time             |
-| 🔒 Anonymous Auth      | No login needed for guests              |
-| ☁️ Firestore           | Real-time backend database              |
+| Feature                | Description                    |
+| ---------------------- | ------------------------------ |
+| 🔴 One-tap SOS Trigger | Instant alert creation         |
+| 📡 Live Alert Feed     | Real-time Firestore updates    |
+| 🗺️ Live Floor Map     | Room-level visualization       |
+| 👥 Role-based Views    | Admin, Staff, Responder, Guest |
+| ✅ Ack & Resolve        | One-click actions              |
+| 📊 Stats Dashboard     | Alert analytics                |
+| ⏱️ Live Timer          | Tracks urgency                 |
+| 🔒 Anonymous Auth      | No login required              |
+| ☁️ Firestore           | Real-time backend              |
 
 ---
 
@@ -69,16 +69,16 @@ Design a system that can:
 
 ```mermaid
 flowchart LR
-    A[Guest / User] --> B[Frontend (React)]
-    B --> C[Backend API (Node.js)]
+    A[Guest User] --> B[Frontend React]
+    B --> C[Backend API NodeJS]
     C --> D[(Firestore Database)]
     D --> B
     B --> E[Admin Dashboard]
-    B --> F[Staff / Responder Views]
+    B --> F[Staff and Responder Views]
 ```
 
 * Event-driven real-time system
-* Firestore listeners power live updates
+* Firestore listeners enable live updates
 * Instant UI sync across all roles
 
 ---
@@ -88,15 +88,15 @@ flowchart LR
 ### Frontend
 
 * React + Vite
-* Three.js (animated landing page)
+* Three.js
 * Firebase SDK
-* Vercel (deployment)
+* Vercel
 
 ### Backend
 
 * Node.js + Express
 * Firebase Admin SDK
-* Render (deployment)
+* Render
 
 ---
 
@@ -106,6 +106,7 @@ flowchart LR
 CrisisSync/
 ├── crisissync-frontend/
 ├── crisissync-backend/
+├── assets/
 └── README.md
 ```
 
@@ -116,7 +117,7 @@ CrisisSync/
 ### Prerequisites
 
 * Node.js v18+
-* Firebase project with Firestore + Anonymous Auth
+* Firebase project (Firestore + Auth)
 
 ### Clone
 
@@ -148,7 +149,25 @@ FIREBASE_PRIVATE_KEY=
 ```
 
 ⚠️ Do NOT commit `.env` files
-👉 Use `.env.example` as reference
+👉 Use `.env.example`
+
+---
+
+### Run Frontend
+
+```bash
+cd crisissync-frontend
+npm install
+npm run dev
+```
+
+### Run Backend
+
+```bash
+cd ../crisissync-backend
+npm install
+node index.js
+```
 
 ---
 
@@ -164,30 +183,26 @@ ACTIVE → ACKNOWLEDGED → RESOLVED
 
 ### Current Limitations
 
-* Single-floor visualization
+* Single-floor view
 * Basic role handling
 * No push notifications
-* Limited scalability testing
 
 ### Future Improvements
 
-* Multi-floor navigation
-* Push notifications (FCM)
-* Role-based authentication
-* Mobile app (React Native)
+* Multi-floor support
+* Firebase notifications
+* Role-based auth
+* Mobile app
 * Analytics dashboard
 
 ---
 
 ## 💡 Why This Project Matters
 
-CrisisSync demonstrates:
-
 * Real-time system design
 * Event-driven architecture
 * Role-based workflows
-* Interactive UI/UX
-* Practical emergency response system
+* Practical emergency solution
 
 ---
 
