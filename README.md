@@ -1,32 +1,85 @@
-# 🚨 CrisisSync — Emergency Coordination Platform
+# 🚨 CrisisSync — Real-Time Emergency Response & Coordination Platform
 
 > Real-time emergency alert and response coordination system built for **Cepheus 2.0** by **Team Code Crafters**
 
-🔗 **Live Demo:** [crisis-sync-olive.vercel.app](https://crisis-sync-olive.vercel.app/)
+## 🌐 Live Demo
+
+👉 https://crisis-sync-olive.vercel.app/
+
+---
+
+## 📸 Preview
+
+### 🏠 Landing Page
+
+![Landing](./assets/HomePage.jpeg)
+
+### 🚨 SOS Trigger (Guest View)
+
+![SOS](./assets/Sos.jpeg)
+
+### 👨‍💼 Admin Dashboard
+
+![Admin](./assets/Admin.jpeg)
+
+### 🧑‍🚒 Staff Dashboard
+
+![Staff](./assets/Staff.jpeg)
+
+### 🚑 Responder View
+
+![Responder](./assets/Responder.jpeg)
 
 ---
 
 ## 📌 Overview
 
-CrisisSync is a full-stack emergency coordination platform that enables guests, staff, and responders to communicate and act on crises in real time. Whether it's a fire, medical emergency, or security threat — CrisisSync ensures the right people are notified instantly, with full lifecycle tracking from the moment an SOS is triggered to the moment it is resolved.
+CrisisSync is a full-stack emergency coordination platform that enables guests, staff, and responders to communicate and act on crises in real time. Whether it's a fire, medical emergency, or security threat — CrisisSync ensures the right people are notified instantly, with full lifecycle tracking from the moment an SOS is triggered to resolution.
+
+---
+
+## 🎯 Problem Statement
+
+Design a system that can:
+
+* Detect and manage emergency alerts in real-time
+* Provide a centralized dashboard for monitoring
+* Enable quick response actions to minimize delays
+* Visually represent incidents for better situational awareness
 
 ---
 
 ## ✨ Features
 
-| Feature | Description |
-|---|---|
-| 🔴 **One-tap SOS Trigger** | Guests raise emergency alerts with type, location, and floor details |
-| 📡 **Live Alert Feed** | Admin dashboard shows all active incidents in real time via Firestore listeners |
-| 🗺️ **Live Floor Map** | Interactive hotel floor map with colour-coded room pins reflecting alert status |
-| 👥 **Role-based Views** | Separate dashboards for Admin, Staff, Responder, and Guest |
-| ✅ **Acknowledge & Resolve** | Staff and responders can update alert status in one click |
-| 📊 **Stats Dashboard** | Tracks active alerts, resolved count, and average response time |
-| 🕐 **SOS Sent Timestamp** | Exact date and time when each SOS was triggered |
-| ✅ **Resolved Timestamp** | Exact date and time when an alert was resolved |
-| ⏱️ **Live Elapsed Timer** | Real-time countdown per alert — turns red after 60 seconds |
-| 🔒 **Firebase Anonymous Auth** | Guests are identified without requiring sign-up |
-| ☁️ **Cloud Firestore** | All incidents stored, synced, and streamed via Firebase |
+| Feature                | Description                             |
+| ---------------------- | --------------------------------------- |
+| 🔴 One-tap SOS Trigger | Guests raise emergency alerts instantly |
+| 📡 Live Alert Feed     | Real-time updates via Firestore         |
+| 🗺️ Live Floor Map     | Visual room-level alert tracking        |
+| 👥 Role-based Views    | Admin, Staff, Responder, Guest          |
+| ✅ Ack & Resolve        | One-click lifecycle management          |
+| 📊 Stats Dashboard     | Active, resolved, response time         |
+| ⏱️ Live Timer          | Tracks urgency in real-time             |
+| 🔒 Anonymous Auth      | No login needed for guests              |
+| ☁️ Firestore           | Real-time backend database              |
+
+---
+
+## 🧠 System Architecture
+
+```mermaid
+flowchart LR
+    A[Guest / User] --> B[Frontend (React)]
+    B --> C[Backend API (Node.js)]
+    C --> D[(Firestore Database)]
+    D --> B
+    B --> E[Admin Dashboard]
+    B --> F[Staff / Responder Views]
+```
+
+* Event-driven real-time system
+* Firestore listeners power live updates
+* Instant UI sync across all roles
 
 ---
 
@@ -34,20 +87,16 @@ CrisisSync is a full-stack emergency coordination platform that enables guests, 
 
 ### Frontend
 
-| Technology | Usage |
-|---|---|
-| React + Vite | UI framework and build tool |
-| Three.js | 3D animated landing page |
-| Firebase SDK | Firestore real-time listeners + anonymous auth |
-| Vercel | Frontend deployment |
+* React + Vite
+* Three.js (animated landing page)
+* Firebase SDK
+* Vercel (deployment)
 
 ### Backend
 
-| Technology | Usage |
-|---|---|
-| Node.js + Express | REST API server |
-| Firebase Admin SDK | Firestore read/write |
-| Render | Backend deployment |
+* Node.js + Express
+* Firebase Admin SDK
+* Render (deployment)
 
 ---
 
@@ -55,77 +104,10 @@ CrisisSync is a full-stack emergency coordination platform that enables guests, 
 
 ```
 CrisisSync/
-├── crisissync-frontend/            # React + Vite frontend
-│   └── src/
-│       ├── App.jsx                 # Root app — routing, role switcher, shell
-│       ├── components/
-│       │   ├── common/
-│       │   │   ├── Landing.jsx     # Three.js animated landing page
-│       │   │   ├── LiveTimer.jsx   # Shared elapsed-time countdown component
-│       │   │   └── Toast.jsx       # Toast notification system
-│       │   ├── dashboard/
-│       │   │   ├── AdminDashboard.jsx   # Full admin view: stats, floor map, alert table
-│       │   │   └── StaffDashboard.jsx   # Staff alert cards with resolve action
-│       │   ├── HotelFloorMap.jsx   # Interactive SVG floor map with status pins
-│       │   └── sos/
-│       │       ├── GuestScreen.jsx      # Guest SOS trigger UI
-│       │       ├── SOSButton.jsx        # Animated SOS button
-│       │       ├── EmergencySelector.jsx # Emergency type picker
-│       │       ├── ConfirmModal.jsx     # Pre-send confirmation dialog
-│       │       └── ResponseTimer.jsx   # Guest-facing response wait timer
-│       ├── hooks/
-│       │   ├── useAlerts.js        # Firestore real-time alert subscription
-│       │   └── useToast.js         # Toast state management hook
-│       ├── services/
-│       │   ├── alertService.js     # createAlert, acknowledgeAlert, resolveAlert
-│       │   └── firebase.js         # Firebase init + anonymous login
-│       └── store/
-│           └── alertStore.js       # Shared alert state store
-│
-└── crisissync-backend/             # Express.js backend
-    ├── routes/
-    │   └── incidents.js            # SOS, acknowledge, resolve API routes
-    ├── firebase.js                 # Firestore Admin SDK connection
-    └── index.js                    # Server entry point
+├── crisissync-frontend/
+├── crisissync-backend/
+└── README.md
 ```
-
----
-
-## 🗺️ Live Floor Map
-
-The Admin dashboard includes an interactive hotel floor map (`HotelFloorMap.jsx`) that visualises alert status room-by-room in real time.
-
-- **Red pin** — Active emergency in that room
-- **Amber pin** — Alert acknowledged, response in progress
-- **Green pin** — Resolved
-- **Click a pin** — Advances the alert to the next state (Active → Acknowledged → Resolved) directly from the map
-
-Room pins are driven by the live `alerts` array from Firestore, matched on the `location` field (e.g. `"Room 302"`).
-
----
-
-## 🕐 Timestamp Tracking
-
-Every alert tracks three key moments:
-
-| Timestamp | Firestore Field | Where Shown |
-|---|---|---|
-| 📤 **Sent At** | `triggeredAt` | Admin table, Guest screen |
-| 👤 **Acknowledged At** | `acknowledgedAt` | Alert detail |
-| ✅ **Resolved At** | `resolvedAt` | Admin table, Guest screen |
-
-The admin table displays **Sent At** in red and **Resolved At** in green. Unresolved alerts show `pending`. The guest screen shows both timestamps side-by-side once an incident is closed.
-
----
-
-## 👥 Roles
-
-| Role | Capabilities |
-|---|---|
-| **Guest** | Trigger SOS with type, location, floor; view sent and resolved timestamps |
-| **Staff** | View active alerts as cards; mark resolved with resolution note |
-| **Admin** | Full dashboard — stats, live floor map, full alert table with timestamps, filter bar |
-| **Responder** | View dispatched emergencies; mark resolved |
 
 ---
 
@@ -133,93 +115,89 @@ The admin table displays **Sent At** in red and **Resolved At** in green. Unreso
 
 ### Prerequisites
 
-- Node.js v18+
-- A Firebase project with **Firestore** and **Anonymous Authentication** enabled
+* Node.js v18+
+* Firebase project with Firestore + Anonymous Auth
 
-### 1 — Clone the repo
+### Clone
 
 ```bash
 git clone https://github.com/jishnu395/CrisisSync.git
 cd CrisisSync
 ```
 
-### 2 — Frontend setup
+---
 
-```bash
-cd crisissync-frontend
-npm install
-```
+## 🔐 Environment Variables
 
-Create `.env` in `crisissync-frontend/`:
+### Frontend (`crisissync-frontend/.env`)
 
 ```env
-VITE_API_URL=https://crisissync-backend-5i57.onrender.com
+VITE_API_URL=
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
 ```
 
-Start the dev server:
-
-```bash
-npm run dev
-```
-
-### 3 — Backend setup
-
-```bash
-cd ../crisissync-backend
-npm install
-```
-
-Create `.env` in `crisissync-backend/`:
+### Backend (`crisissync-backend/.env`)
 
 ```env
 PORT=5000
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
 ```
 
-Add your Firebase service account JSON credentials, then:
-
-```bash
-node index.js
-```
-
----
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Health check |
-| `POST` | `/api/sos` | Trigger a new SOS — saves `triggeredAt` timestamp to Firestore |
-| `GET` | `/api/incidents` | Fetch all incidents with `triggeredAt`, `acknowledgedAt`, `resolvedAt` |
-| `PATCH` | `/api/incidents/:id/acknowledge` | Acknowledge alert — saves `acknowledgedAt` |
-| `PATCH` | `/api/incidents/:id/resolve` | Resolve alert — saves `resolvedAt` and `responseTimeSeconds` |
+⚠️ Do NOT commit `.env` files
+👉 Use `.env.example` as reference
 
 ---
 
 ## 🔄 Alert Lifecycle
 
 ```
-Guest triggers SOS
-       │
-       ▼
-  [ACTIVE] ──────────────────── Admin/Staff sees alert (red)
-       │                         Live elapsed timer starts
-       ▼
-  [ACKNOWLEDGED] ─────────────── Responder en route (amber)
-       │                         acknowledgedAt recorded
-       ▼
-  [RESOLVED] ─────────────────── Incident closed (green)
-                                  resolvedAt + responseTimeSeconds recorded
-                                  Guest sees resolved timestamp
+ACTIVE → ACKNOWLEDGED → RESOLVED
 ```
 
 ---
 
-## 👨‍💻 Team
+## 🚧 Limitations & Future Improvements
 
-**Team Code Crafters** — Cepheus 2.0
+### Current Limitations
+
+* Single-floor visualization
+* Basic role handling
+* No push notifications
+* Limited scalability testing
+
+### Future Improvements
+
+* Multi-floor navigation
+* Push notifications (FCM)
+* Role-based authentication
+* Mobile app (React Native)
+* Analytics dashboard
+
+---
+
+## 💡 Why This Project Matters
+
+CrisisSync demonstrates:
+
+* Real-time system design
+* Event-driven architecture
+* Role-based workflows
+* Interactive UI/UX
+* Practical emergency response system
+
+---
+
+## 👥 Team
+
+Built by **Team Code Crafters** during **Cepheus 2.0 Hackathon**
+*(Individual contributor names intentionally omitted)*
 
 ---
 
 ## 📄 License
 
-MIT License — free to use and modify for your own projects.
+MIT License
