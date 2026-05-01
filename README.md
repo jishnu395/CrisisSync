@@ -209,10 +209,5 @@ ACTIVE → ACKNOWLEDGED → RESOLVED
 ## 👥 Team
 
 Built by **Team Code Crafters** during **Cepheus 2.0 Hackathon**
-*(Individual contributor names intentionally omitted)*
 
 ---
-
-## 📄 License
-
-MIT License
